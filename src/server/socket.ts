@@ -21,7 +21,20 @@ export class SocketServer {
     if (!SocketServer.io) {
       SocketServer.io = new Server(server, {
         cors: {
-          origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+          origin: (origin, callback) => {
+            const allowedOrigins = [
+              process.env.NEXT_PUBLIC_APP_URL,
+              'https://poker-planning-next.vercel.app',
+              'http://localhost:3000',
+              'http://localhost:3001'
+            ].filter(Boolean)
+
+            if (!origin || allowedOrigins.includes(origin)) {
+              callback(null, true)
+            } else {
+              callback(new Error('Not allowed by CORS'))
+            }
+          },
           methods: ['GET', 'POST'],
           credentials: true,
         },
