@@ -1,3 +1,9 @@
+import { fileURLToPath } from 'url'
+import path from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -11,12 +17,12 @@ const nextConfig = {
   },
   async headers() {
     const origin = process.env.NODE_ENV === 'production'
-      ? 'https://poker-planning-next.vercel.app'
+      ? process.env.NEXT_PUBLIC_APP_URL
       : 'http://localhost:3000'
 
     return [
       {
-        source: '/api/socket',
+        source: '/socket.io/:path*',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
           { key: 'Access-Control-Allow-Origin', value: origin },
@@ -27,13 +33,11 @@ const nextConfig = {
     ]
   },
   serverRuntimeConfig: {
-    // Will only be available on the server side
     PROJECT_ROOT: __dirname,
   },
   publicRuntimeConfig: {
-    // Will be available on both server and client
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   },
 }
 
-module.exports = nextConfig 
+export default nextConfig 

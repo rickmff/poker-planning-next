@@ -2,10 +2,11 @@
   "name": "poker-planning-next",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_ENV=development NEXT_PUBLIC_APP_URL=http://localhost:3000 node --loader ts-node/esm server.ts",
     "build": "next build",
-    "start": "next start",
+    "start": "cross-env NODE_ENV=production node --loader ts-node/esm server.ts",
     "lint": "next lint"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "@socket.io/component-emitter": "^3.1.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "cross-env": "^7.0.3",
     "framer-motion": "^12.4.2",
     "lucide-react": "^0.358.0",
     "next": "14.1.3",

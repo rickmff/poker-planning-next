@@ -16,16 +16,14 @@ export const initSocket = () => {
     console.log('Connecting to socket server at:', url)
     
     socket = io(url, {
-      path: '/api/socket',
-      addTrailingSlash: false,
+      path: '/socket.io/',
+      transports: ['polling', 'websocket'],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
       reconnectionAttempts: 5,
-      transports: ['polling'] as const,
       autoConnect: true,
       withCredentials: true,
-      timeout: 10000,
-      forceNew: true,
+      timeout: 20000,
     })
 
     socket.on('connect_error', (err) => {
