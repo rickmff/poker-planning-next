@@ -57,6 +57,7 @@ const ioHandler = async (req: NextApiRequest, res: ResponseWithSocket) => {
       connectTimeout: 10000,
       upgradeTimeout: 10000,
       allowUpgrades: false, // Disable WebSocket upgrades
+      cookie: false
     })
 
     io.on('connection', (socket) => {
@@ -197,17 +198,21 @@ const ioHandler = async (req: NextApiRequest, res: ResponseWithSocket) => {
     res.socket.server.io = io
   }
 
-  // Required for Vercel serverless functions
-  if (req.method === 'POST') {
-    res.status(200).json({ message: 'Socket server running' })
-  } else if (req.method === 'OPTIONS') {
-    res.status(200).end()
-  } else {
-    const _query: Record<string, string> = {}
-    Object.entries(req.query).forEach(([key, value]) => {
-      _query[key] = Array.isArray(value) ? value[0] : value || ''
-    })
-    await res.socket.server.io.engine.handleRequest({ ...req, _query } as any, res)
+  try {
+    if (req.method === 'POST') {
+      res.status(200).json({ message: 'Socket server running' })
+    } else if (req.method === 'OPTIONS') {
+      res.status(200).end()
+    } else {
+      const _query: Record<string, string> = {}
+      Object.entries(req.query).forEach(([key, value]) => {
+        _query[key] = Array.isArray(value) ? value[0] : value || ''
+      })
+      await res.socket.server.io.engine.handleRequest({ ...req, _query } as any, res)
+    }
+  } catch (err) {
+    console.error('Socket error:', err)
+    res.status(500).end()
   }
 }
 
