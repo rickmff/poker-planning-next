@@ -17,18 +17,26 @@ const nextConfig = {
     return config
   },
   async headers() {
-    const origin = process.env.NODE_ENV === 'production'
-      ? process.env.NEXT_PUBLIC_APP_URL
-      : 'http://localhost:3000'
-
     return [
       {
         source: '/socket.io/:path*',
         headers: [
-          { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: origin },
-          { key: 'Access-Control-Allow-Methods', value: 'GET,POST,OPTIONS' },
-          { key: 'Access-Control-Allow-Headers', value: 'content-type' },
+          { 
+            key: 'Access-Control-Allow-Credentials', 
+            value: 'true' 
+          },
+          { 
+            key: 'Access-Control-Allow-Origin', 
+            value: '*' // We'll restrict this in the Socket.IO server config
+          },
+          { 
+            key: 'Access-Control-Allow-Methods', 
+            value: 'GET,POST,OPTIONS' 
+          },
+          { 
+            key: 'Access-Control-Allow-Headers', 
+            value: 'content-type' 
+          },
         ],
       },
     ]
