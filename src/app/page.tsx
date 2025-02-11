@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { JoinRoomForm } from '@/components/join-room-form'
 
 export default function Home() {
@@ -15,7 +16,9 @@ export default function Home() {
               Join a room to start planning with your team. Create estimates together in real-time.
             </p>
           </div>
-          <JoinRoomForm />
+          <Suspense fallback={<div className="w-full max-w-md mx-auto animate-pulse bg-muted h-[400px] rounded-lg" />}>
+            <JoinRoomForm />
+          </Suspense>
         </div>
       </div>
     </main>

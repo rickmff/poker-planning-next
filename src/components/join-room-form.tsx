@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 export function JoinRoomForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const roomIdFromUrl = searchParams.get('room')
+  const roomIdFromUrl = searchParams?.get('room')
 
   const [name, setName] = useState('')
   const [roomId, setRoomId] = useState(roomIdFromUrl || '')
