@@ -20,6 +20,7 @@ export class SocketServer {
   constructor(server: HTTPServer) {
     if (!SocketServer.io) {
       SocketServer.io = new Server(server, {
+        path: '/socket.io/',
         cors: {
           origin: (origin, callback) => {
             const allowedOrigins = [
@@ -29,6 +30,13 @@ export class SocketServer {
               'http://localhost:3001'
             ].filter(Boolean)
 
+            // In production, allow the actual origin
+            if (process.env.NODE_ENV === 'production' && origin) {
+              callback(null, origin)
+              return
+            }
+
+            // In development, check against allowed origins
             if (!origin || allowedOrigins.includes(origin)) {
               callback(null, true)
             } else {
@@ -37,7 +45,10 @@ export class SocketServer {
           },
           methods: ['GET', 'POST'],
           credentials: true,
+          allowedHeaders: ['content-type']
         },
+        transports: ['websocket', 'polling'],
+        allowEIO3: true
       })
     }
   }
