@@ -30,11 +30,19 @@ export const initSocket = () => {
       reconnectionDelayMax: 10000,
       autoConnect: true,
       withCredentials: true,
-      path: '/socket.io/',
+      path: '/api/socket',
     })
 
     socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message)
+    })
+
+    socket.on('connect', () => {
+      console.log('Socket connected successfully')
+    })
+
+    socket.on('disconnect', () => {
+      console.log('Socket disconnected')
     })
   }
   return socket
