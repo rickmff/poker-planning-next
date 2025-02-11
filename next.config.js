@@ -26,6 +26,14 @@ const nextConfig = {
       },
     ]
   },
+  serverRuntimeConfig: {
+    // Will only be available on the server side
+    PROJECT_ROOT: __dirname,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  },
 }
 
 module.exports = nextConfig 

@@ -20,26 +20,18 @@ export const initSocket = () => {
       addTrailingSlash: false,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 10,
-      transports: ['polling', 'websocket'] as const,
+      reconnectionAttempts: 5,
+      transports: ['polling'] as const,
       autoConnect: true,
       withCredentials: true,
-      timeout: 60000,
+      timeout: 10000,
       forceNew: true,
     })
 
     socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message)
-      // Only fallback to polling if websocket fails
-      if (err.message.includes('websocket') && socket?.io?.opts) {
-        console.log('Falling back to polling transport')
-        const currentSocket = socket
-        currentSocket.disconnect()
-        socket = io(url, {
-          ...currentSocket.io.opts,
-          transports: ['polling'] as const,
-          forceNew: true,
-        })
+      if (socket) {
+        socket.connect()
       }
     })
 
@@ -49,7 +41,6 @@ export const initSocket = () => {
 
     socket.on('disconnect', (reason) => {
       console.log('Socket disconnected:', reason)
-      // Automatically try to reconnect on connection loss
       if (reason === 'io server disconnect' || reason === 'transport close') {
         socket?.connect()
       }

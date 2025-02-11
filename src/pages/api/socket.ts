@@ -18,6 +18,7 @@ interface SocketData {
 export const config = {
   api: {
     bodyParser: false,
+    externalResolver: true,
   },
 }
 
@@ -40,7 +41,7 @@ const ioHandler = async (req: NextApiRequest, res: ResponseWithSocket) => {
     const io = new ServerIO<ClientToServerEvents, ServerToClientEvents, {}, SocketData>(httpServer, {
       path: '/api/socket',
       addTrailingSlash: false,
-      transports: ['polling', 'websocket'],
+      transports: ['polling'],
       cors: {
         origin: process.env.NODE_ENV === 'production' 
           ? 'https://poker-planning-next.vercel.app'
@@ -50,11 +51,12 @@ const ioHandler = async (req: NextApiRequest, res: ResponseWithSocket) => {
         credentials: true
       },
       // Vercel specific settings
-      maxHttpBufferSize: 1e8,
-      pingTimeout: 60000,
-      pingInterval: 25000,
-      connectTimeout: 45000,
-      upgradeTimeout: 30000,
+      maxHttpBufferSize: 1e7,
+      pingTimeout: 10000,
+      pingInterval: 5000,
+      connectTimeout: 10000,
+      upgradeTimeout: 10000,
+      allowUpgrades: false, // Disable WebSocket upgrades
     })
 
     io.on('connection', (socket) => {
@@ -197,11 +199,15 @@ const ioHandler = async (req: NextApiRequest, res: ResponseWithSocket) => {
 
   // Required for Vercel serverless functions
   if (req.method === 'POST') {
-    // Handle Socket.IO HTTP transport
     res.status(200).json({ message: 'Socket server running' })
-  } else {
-    // Handle WebSocket upgrade
+  } else if (req.method === 'OPTIONS') {
     res.status(200).end()
+  } else {
+    const _query: Record<string, string> = {}
+    Object.entries(req.query).forEach(([key, value]) => {
+      _query[key] = Array.isArray(value) ? value[0] : value || ''
+    })
+    await res.socket.server.io.engine.handleRequest({ ...req, _query } as any, res)
   }
 }
 
