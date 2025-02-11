@@ -10,16 +10,16 @@ const nextConfig = {
     return config
   },
   async headers() {
-    const origins = process.env.NODE_ENV === 'production'
-      ? ['https://poker-planning-next.vercel.app']
-      : ['http://localhost:3000']
+    const origin = process.env.NODE_ENV === 'production'
+      ? 'https://poker-planning-next.vercel.app'
+      : 'http://localhost:3000'
 
     return [
       {
-        source: '/socket.io/:path*',
+        source: '/api/socket',
         headers: [
           { key: 'Access-Control-Allow-Credentials', value: 'true' },
-          { key: 'Access-Control-Allow-Origin', value: origins.join(',') },
+          { key: 'Access-Control-Allow-Origin', value: origin },
           { key: 'Access-Control-Allow-Methods', value: 'GET,POST,OPTIONS' },
           { key: 'Access-Control-Allow-Headers', value: 'content-type' },
         ],

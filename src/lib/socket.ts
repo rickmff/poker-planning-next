@@ -16,15 +16,16 @@ export const initSocket = () => {
     console.log('Connecting to socket server at:', url)
     
     socket = io(url, {
-      path: '/socket.io/',
+      path: '/api/socket',
       addTrailingSlash: false,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-      transports: ['websocket', 'polling'] as const,
+      reconnectionAttempts: 10,
+      transports: ['polling', 'websocket'] as const,
       autoConnect: true,
       withCredentials: true,
       timeout: 60000,
+      forceNew: true,
     })
 
     socket.on('connect_error', (err) => {
@@ -36,7 +37,8 @@ export const initSocket = () => {
         currentSocket.disconnect()
         socket = io(url, {
           ...currentSocket.io.opts,
-          transports: ['polling'] as const
+          transports: ['polling'] as const,
+          forceNew: true,
         })
       }
     })

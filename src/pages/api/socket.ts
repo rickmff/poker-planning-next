@@ -33,23 +33,28 @@ interface ResponseWithSocket extends NextApiResponse {
 
 const rooms = new Map<string, Room>()
 
-const ioHandler = (req: NextApiRequest, res: ResponseWithSocket) => {
+const ioHandler = async (req: NextApiRequest, res: ResponseWithSocket) => {
   if (!res.socket.server.io) {
+    console.log('Initializing Socket.IO server...')
     const httpServer: NetServer = res.socket.server as any
     const io = new ServerIO<ClientToServerEvents, ServerToClientEvents, {}, SocketData>(httpServer, {
-      path: '/socket.io/',
+      path: '/api/socket',
       addTrailingSlash: false,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
       cors: {
         origin: process.env.NODE_ENV === 'production' 
-          ? ['https://poker-planning-next.vercel.app'] 
-          : ['http://localhost:3000'],
-        methods: ['GET', 'POST'],
-        credentials: true,
-        allowedHeaders: ['content-type']
+          ? 'https://poker-planning-next.vercel.app'
+          : 'http://localhost:3000',
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: ['content-type'],
+        credentials: true
       },
+      // Vercel specific settings
+      maxHttpBufferSize: 1e8,
       pingTimeout: 60000,
       pingInterval: 25000,
+      connectTimeout: 45000,
+      upgradeTimeout: 30000,
     })
 
     io.on('connection', (socket) => {
@@ -190,7 +195,14 @@ const ioHandler = (req: NextApiRequest, res: ResponseWithSocket) => {
     res.socket.server.io = io
   }
 
-  res.end()
+  // Required for Vercel serverless functions
+  if (req.method === 'POST') {
+    // Handle Socket.IO HTTP transport
+    res.status(200).json({ message: 'Socket server running' })
+  } else {
+    // Handle WebSocket upgrade
+    res.status(200).end()
+  }
 }
 
 export default ioHandler 
