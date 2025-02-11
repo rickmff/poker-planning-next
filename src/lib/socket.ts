@@ -4,21 +4,10 @@ import type { ClientToServerEvents, ServerToClientEvents } from '@/types'
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null
 
 const getSocketUrl = () => {
-  // In production, use the Vercel URL
   if (typeof window !== 'undefined') {
-    // Use the current window location in production
-    if (window.location.hostname !== 'localhost') {
-      return `${window.location.protocol}//${window.location.host}`
-    }
+    return window.location.origin
   }
-  
-  // Use environment variable if set
-  if (process.env.NEXT_PUBLIC_SOCKET_URL) {
-    return process.env.NEXT_PUBLIC_SOCKET_URL
-  }
-  
-  // Fallback to localhost for development
-  return 'http://localhost:3000'
+  return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 }
 
 export const initSocket = () => {
@@ -27,22 +16,41 @@ export const initSocket = () => {
     console.log('Connecting to socket server at:', url)
     
     socket = io(url, {
-      reconnectionDelayMax: 10000,
+      path: '/socket.io/',
+      addTrailingSlash: false,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
+      transports: ['websocket', 'polling'] as const,
       autoConnect: true,
       withCredentials: true,
-      path: '/api/socket',
+      timeout: 60000,
     })
 
     socket.on('connect_error', (err) => {
       console.error('Socket connection error:', err.message)
+      // Only fallback to polling if websocket fails
+      if (err.message.includes('websocket') && socket?.io?.opts) {
+        console.log('Falling back to polling transport')
+        const currentSocket = socket
+        currentSocket.disconnect()
+        socket = io(url, {
+          ...currentSocket.io.opts,
+          transports: ['polling'] as const
+        })
+      }
     })
 
     socket.on('connect', () => {
       console.log('Socket connected successfully')
     })
 
-    socket.on('disconnect', () => {
-      console.log('Socket disconnected')
+    socket.on('disconnect', (reason) => {
+      console.log('Socket disconnected:', reason)
+      // Automatically try to reconnect on connection loss
+      if (reason === 'io server disconnect' || reason === 'transport close') {
+        socket?.connect()
+      }
     })
   }
   return socket

@@ -28,14 +28,37 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     const socket = initSocket()
     set({ isLoading: true, error: null })
 
+    // Handle connection errors
+    socket.on('connect_error', (error) => {
+      set({ 
+        error: `Failed to connect to room: ${error.message}`,
+        isLoading: false 
+      })
+      toast.error('Connection Error', {
+        description: 'Failed to connect to the room. Please try again.'
+      })
+    })
+
     socket.emit('room:join', roomId, userName, isSpectator)
 
     socket.on('user:joined', (user: User) => {
       set({ currentUser: user, isLoading: false })
+      toast.success('Joined Room', {
+        description: `Successfully joined as ${user.name}`
+      })
     })
 
     socket.on('room:updated', (room: Room) => {
       set({ room })
+    })
+
+    socket.on('user:left', (userId: string) => {
+      set((state) => ({
+        room: state.room ? {
+          ...state.room,
+          users: state.room.users.filter(u => u.id !== userId)
+        } : null
+      }))
     })
 
     socket.on('host:transferred', () => {

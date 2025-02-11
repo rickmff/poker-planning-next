@@ -37,31 +37,19 @@ const ioHandler = (req: NextApiRequest, res: ResponseWithSocket) => {
   if (!res.socket.server.io) {
     const httpServer: NetServer = res.socket.server as any
     const io = new ServerIO<ClientToServerEvents, ServerToClientEvents, {}, SocketData>(httpServer, {
-      path: '/api/socket',
+      path: '/socket.io/',
       addTrailingSlash: false,
+      transports: ['websocket', 'polling'],
       cors: {
-        origin: (origin, callback) => {
-          const allowedOrigins = [
-            process.env.NEXT_PUBLIC_APP_URL,
-            'https://poker-planning-next.vercel.app',
-            'http://localhost:3000',
-            'http://localhost:3001'
-          ].filter(Boolean)
-
-          if (process.env.NODE_ENV === 'production' && origin) {
-            callback(null, origin)
-            return
-          }
-
-          if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true)
-          } else {
-            callback(new Error('Not allowed by CORS'))
-          }
-        },
+        origin: process.env.NODE_ENV === 'production' 
+          ? ['https://poker-planning-next.vercel.app'] 
+          : ['http://localhost:3000'],
         methods: ['GET', 'POST'],
         credentials: true,
+        allowedHeaders: ['content-type']
       },
+      pingTimeout: 60000,
+      pingInterval: 25000,
     })
 
     io.on('connection', (socket) => {
